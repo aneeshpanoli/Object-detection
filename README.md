@@ -1,5 +1,7 @@
 # Object-detection
-A bunch of python scripts I wrote for real-time object detection. contains both tensorflow and computer vision pipelines
-For educational purposes only
 
-Latest push
+Python scripts for object detection.
+
+Uses the Tensorflow Object detection library and CV2. 
+
+For educational purposes only!
