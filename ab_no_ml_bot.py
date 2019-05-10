@@ -201,6 +201,7 @@ class AutoPlayAncientBricks:
                 print('df saved at row:' + str(self.df_row_index))
 
     def ball_direction(self):
+        '''Computes the direction in which the ball is travelling'''
         if self.start_thread:
             if os.path.exists('ml_data.csv'):
                 self.df1 = pd.read_csv('ml_data.csv')
