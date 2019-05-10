@@ -9,6 +9,10 @@ import pandas as pd
 
 
 class AutoPlayAncientBricks:
+    '''Script for automating Ancient Bricks gameplay.
+    Uses tensorflow object detection model for identifying
+    ingame objects'''
+
     def __init__(self):
         self.kill_num = 0
         self.now_ball = 0
@@ -28,9 +32,10 @@ class AutoPlayAncientBricks:
         self.df1 = pd.DataFrame(columns=['x0', 'y0', 'x1', 'y1', 'hit_x'])
 
 
-
     def test_bat_position(self):
-
+        '''use this as a test case to determine if the program works
+        as intended. If you have multi monitor setup, adjust the monitor number
+        and the area to capture'''
         began = time.time()
         with mss.mss() as sct:
             monitor_number = 3
@@ -50,6 +55,7 @@ class AutoPlayAncientBricks:
         print(time.time() - began)
 
     def take_screenshot(self, scName):
+        '''Use a while loop with delay to take continuous screenshots'''
         with mss.mss() as sct:
             monitor_number = 3
             mon = sct.monitors[monitor_number]
@@ -65,6 +71,8 @@ class AutoPlayAncientBricks:
             mss.tools.to_png(sct_img.rgb, sct_img.size, output=output)
 
     def get_ball_pos(self, q1, q3, scName):
+        '''uses CV2 library to detect specific objects from screenshots
+        and reports their position'''
         while True:
             self.take_screenshot(scName)
             try:
@@ -109,6 +117,8 @@ class AutoPlayAncientBricks:
     # problem: move the bat contiguously with
 
     def move_bat(self, bat_pos, new_batx, now_ball, prev_ball, q2):
+        '''automatically moves the bat to rebound the ball. This is run as a
+        worker. hence the queue was enabled'''
         if 63 <= new_batx <= 299:
             pag.dragTo(new_batx, bat_pos.y, 0.101, button="left")
 
@@ -123,6 +133,10 @@ class AutoPlayAncientBricks:
         q2.put(False)
 
     def compute_pos_and_move_bat(self):
+        '''Computes the position of the bat to meet the falling ball. User linear
+        regression y = mx+b. We do not need y here as the y of ball the fixed.
+        Therefore the formula was edited to x = ym+b. Fixed x value was calculated from bat position
+        m and b were cumputed from the position of ball in a pair of sucessive screenshots'''
         # x and y are intentionally reversed to match  y = mx+b
         if 370 < self.now_ball.y.item() < 470:
             x = [self.prev_ball.y.item(), self.now_ball.y.item()]
@@ -170,9 +184,9 @@ class AutoPlayAncientBricks:
                 thread2.start()
 
     def append_to_df(self):
-        # collect coords of the ball keep on adding to the csv with pandas
+         '''collect coords of the ball position keep on adding to the csv with pandas
         # record and go to the next line when ball comes to tbe bottom
-        # x and y are intentionally reversed to match  y = mx+b
+        # x and y are intentionally reversed to match  y = mx+b'''
         if 370 < self.now_ball.y.item() < 470:
             self.df1.at[self.df_row_index, 'x0'] = self.prev_ball.x.item()
             self.df1.at[self.df_row_index, 'y0'] = self.prev_ball.y.item()
@@ -226,8 +240,8 @@ class AutoPlayAncientBricks:
             sys.exit()
 
     def predict_pos(self, predict_data):
-        # prepare prediction data as def fname(arg)
-        # load model
+        '''# prepare prediction data as def fname(arg)
+        # load model'''
 
         with self.tf_graph.as_default():
             predictions = self.model.predict(predict_data)
